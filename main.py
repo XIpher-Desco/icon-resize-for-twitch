@@ -41,7 +41,7 @@ def help_cliked():
 
 if __name__ == "__main__":
     root = Tk()
-    root.title('Twitch icon resizer')
+    root.title('Twitch image resizer')
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
     root.rowconfigure(1, weight=1)
