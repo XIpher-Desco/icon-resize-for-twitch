@@ -28,7 +28,7 @@ def imwrite_for_2byte(filename, img, params=None):
         print(e)
         return False        
 
-def twitch_resize_func(input_file_path, resize_list=[112, 56, 28],aa_enable=True,):
+def twitch_resize_func(input_file_path, resize_list=[112, 56, 28],aa_enable=True, keep_aspect=False):
 
     # ファイルが存在するか確認
     if os.path.exists(input_file_path):
@@ -37,7 +37,7 @@ def twitch_resize_func(input_file_path, resize_list=[112, 56, 28],aa_enable=True
         raise ValueError('Error. this file is not exist!')
 
     if os.path.isdir(input_file_path):
-        raise ValueError('Error. this file is directory!')
+        raise ValueError('Error. this path is directory!')
 
     # ファイルが画像ファイルかどうかの確認
     if (imghdr.what(input_file_path) is None):
@@ -53,15 +53,25 @@ def twitch_resize_func(input_file_path, resize_list=[112, 56, 28],aa_enable=True
         # リサイズの数値計算
         resize_pixel = int(size)
 
+
+        # リサイズの高さと幅を計算（アスペクト比維持パターンがあるため）
+        resize_height = resize_pixel
+        resize_width = resize_pixel
+        if keep_aspect:
+            h, w = img.shape[:2]
+            resize_height = round(h * (resize_pixel / w))
+
         # アウトプットの名前作成
         output_file_name=f"{input_file_dir}/{input_file_name}_{resize_pixel}.png"
 
         # resize 関数でリサイズ
         # 画像にブラーをかける
         if aa_enable :
-            blursize=int(size/2)
-            img = cv2.blur(img, (blursize,blursize))
-        dest = cv2.resize(img, dsize=(resize_pixel, resize_pixel), interpolation=cv2.INTER_LANCZOS4 )
+            # blursize=int(size/2)
+            # img = cv2.blur(img, (blursize,blursize))
+            dest = cv2.resize(img, dsize=(resize_width, resize_height), interpolation=cv2.INTER_AREA )
+        else:
+            dest = cv2.resize(img, dsize=(resize_width, resize_height), interpolation=cv2.INTER_LANCZOS4 )
 
         # 保存
         imwrite_for_2byte(output_file_name, dest)

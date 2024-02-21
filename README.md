@@ -1,17 +1,22 @@
-# icon resize for twitch
+# image resize for twitch
 画像を twitch のチャンネルポイントや、バッジの作成時向けにリサイズするツールです。
 
 # 使い方
-Release から最新バージョンの icon-resize-for-twitch.exe をダウンロードします。
+Release から最新バージョンの image-resize-for-twitch.exe をダウンロードします。
 
 exe ファイルを開き、 Open Fileを押して、リサイズするファイルを選択し、リサイズボタンを押すことでリサイズされます。リサイズされたファイルは、元のファイルと同じ場所に作られます。
+
+AA(アンチエイリアス)の違いで、変換時のコントラストが変わります。エッジのスムーズさに影響があるので、お好みの方をお使いください。
 
 > [!TIP]
 > 事前に正方形にしておくとキレイにリサイズされやすいです。
 > アンチエイリアスによってボケてしまう場合は、 No_AA のボタンを使ってください（ファイルは上書きです）
+> 1:1のアスペクト比以外のが画像は、強制的にアスペクト比を1:1に変換します。
 
-build command
+## 320px について
+チャンネルトップページのバナー向けの変換です。横幅320になるように、アスペクト比を維持したまま、変換します。
 
+memo: build command
 ```
-pyinstaller .\main.py --name icon-resize-for-twitch.exe --onefile --noconsole
+pyinstaller .\main.py --name image-resize-for-twitch.exe --onefile --noconsole
 ```
