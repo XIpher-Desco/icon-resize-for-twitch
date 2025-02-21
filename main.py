@@ -37,7 +37,7 @@ def resize_clicked(resize_list=[112, 56, 28], aa_enable=True, keep_aspect=False)
 
 def help_cliked():
     info_text.set('Open Fileを押して、ファイルを選択し、Resize ボタンでリサイズされます')
-    messagebox.showinfo("Resize Help", f"Open Fileを押して、ファイルを選択し、Resize ボタンでリサイズされます。\nリサイズされたファイルは元ファイルと同じ場所に作成されます。\n Resize ボタンで 112x112, 56x56, 28x28\tResize_72 ボタンで 72x72, 36x36, 18x18 が生成されます。\n画像のぼやけが気になる場合は、No_AA を使ってください。")
+    messagebox.showinfo("Resize Help", f"Open Fileを押して、ファイルを選択し、Resize ボタンでリサイズされます。\nリサイズされたファイルは元ファイルと同じ場所に作成されます。\n Resize ボタンで 112x112, 56x56, 28x28\tResize_72 ボタンで 72x72, 36x36, 18x18 が生成されます。\n画像のぼやけが気になる場合は、No_AA を使ってください。\nアニメーションGifは強制的にアンチエイリアスが無効になります（透過処理の問題）")
 
 if __name__ == "__main__":
     root = Tk()
@@ -93,7 +93,7 @@ if __name__ == "__main__":
     resize_112_frame.grid(row=0, column=0)
 
     # Resize frame For 112x112 description
-    button_112_description = ttk.Label(resize_112_frame, text='チャネポ向け\n112x112, 56x56, 28x28')
+    button_112_description = ttk.Label(resize_112_frame, text='エモート/チャネポ向け\n112x112, 56x56, 28x28')
     button_112_description.grid(row=0, column=0,)
 
     # Resize Button
