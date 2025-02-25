@@ -45,7 +45,7 @@ if __name__ == "__main__":
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
     root.rowconfigure(1, weight=1)
-    root.geometry("650x250")
+    root.geometry("650x320")
 
     file_path_frame = ttk.Frame(root, padding=[10,0,10,0])
     file_path_frame.columnconfigure(0, weight=1)
@@ -62,8 +62,8 @@ if __name__ == "__main__":
     # File Entry 
     filepath = StringVar()
     filepath_entry = ttk.Entry(
-    file_path_frame,
-    textvariable=filepath)
+        file_path_frame,
+        textvariable=filepath)
     filepath_entry.grid(row=0, column=1, sticky=(W, E))
 
     # style
@@ -169,6 +169,112 @@ if __name__ == "__main__":
         buttons_frame, text='Help', width=10,
         command=help_cliked)
     help_button.grid(row=0, column=3, rowspan=2, sticky=(E))
+
+    # free size frame
+    free_size_resize_frame = ttk.Frame(root, padding=10)
+    free_size_resize_frame.columnconfigure(0, weight=1)  # Description
+    free_size_resize_frame.columnconfigure(1, weight=1)  # Input fields
+    free_size_resize_frame.columnconfigure(2, weight=1)  # Buttons
+    free_size_resize_frame.grid(sticky=(N, W, S, E))
+
+    # Left: Description Label
+    free_size_description = ttk.Label(
+        free_size_resize_frame,
+        text='カスタムサイズ\n現在は幅のみ指定可能\n(正方形として出力)'
+    )
+    free_size_description.grid(row=0, column=0, padx=5)
+
+    # Middle: Input Fields Frame
+    input_frame = ttk.Frame(free_size_resize_frame)
+    input_frame.grid(row=0, column=1, padx=5)
+
+    # Width Input and Checkbox
+    width_label = ttk.Label(input_frame, text='幅:')
+    width_label.grid(row=0, column=0, sticky=E)
+    width_var = StringVar()
+    width_entry = ttk.Entry(
+        input_frame,
+        textvariable=width_var,
+        width=10
+    )
+    width_entry.grid(row=0, column=1, sticky=W, padx=(5, 0))
+
+    # Size limit override checkbox
+    override_size_limit = BooleanVar()
+    override_checkbox = ttk.Checkbutton(
+        input_frame,
+        text='制限解除',
+        variable=override_size_limit
+    )
+    override_checkbox.grid(row=0, column=2, padx=(5, 0), sticky=W)
+
+    # Additional note for size limit
+    size_limit_note = ttk.Label(
+        input_frame,
+        text='※デフォルトは最大4096ピクセルまで',
+        font=('', 8)
+    )
+    size_limit_note.grid(row=1, column=0, columnspan=3, sticky=W, pady=(2, 0))
+
+    # Height Input (disabled)
+    height_label = ttk.Label(input_frame, text='高さ:')
+    height_label.grid(row=2, column=0, sticky=E)
+    height_var = StringVar()
+    height_entry = ttk.Entry(
+        input_frame,
+        textvariable=height_var,
+        width=10,
+        state='disabled'
+    )
+    height_entry.grid(row=2, column=1, sticky=W, padx=(5, 0))
+
+    # Additional note for height
+    note_label = ttk.Label(
+        input_frame,
+        text='※高さ指定は今後対応予定',
+        font=('', 8)
+    )
+    note_label.grid(row=3, column=0, columnspan=3, sticky=W, pady=(2, 0))
+
+    # Right: Buttons Frame
+    button_frame = ttk.Frame(free_size_resize_frame)
+    button_frame.grid(row=0, column=2, padx=5)
+
+    def free_size_resize(aa_enable=True):
+        try:
+            width = int(width_var.get())
+            if width <= 0:
+                raise ValueError("サイズは正の整数を入力してください")
+            
+            # サイズ制限チェック
+            if not override_size_limit.get() and width > 4096:
+                messagebox.showerror(
+                    "Error", 
+                    "4096ピクセルを超えるサイズを指定する場合は、制限解除のチェックボックスをオンにしてください"
+                )
+                info_text.set("サイズが制限を超えています")
+                return
+
+            resize_clicked(resize_list=[width], aa_enable=aa_enable, keep_aspect=True)
+        except ValueError as e:
+            messagebox.showerror("Error", "正しいサイズを入力してください")
+            info_text.set("正しいサイズを入力してください")
+
+    free_size_button = ttk.Button(
+        button_frame,
+        text='リサイズ',
+        width=20,
+        command=lambda: free_size_resize(aa_enable=True)
+    )
+    free_size_button.grid(row=0, column=0, pady=(0, 5))
+
+    free_size_no_aa_button = ttk.Button(
+        button_frame,
+        text='No_AA_リサイズ',
+        width=20,
+        command=lambda: free_size_resize(aa_enable=False)
+    )
+    free_size_no_aa_button.grid(row=1, column=0)
 
     # info frame
     info_frame = ttk.Frame(root, padding=[10,0,10,0])
