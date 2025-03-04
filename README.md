@@ -27,5 +27,5 @@ python -m venv .venv
 
 memo: build command
 ```
-pyinstaller .\main.py --name image-resize-for-twitch.exe --onefile --noconsole
+pyinstaller .\main.py --name image-resize-for-twitch.exe --onefile --noconsole --collect-data tkinterdnd2
 ```
