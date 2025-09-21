@@ -1,0 +1,34 @@
+name: Build and Release with PyInstaller
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13' # お使いのPythonバージョンに合わせて変更してください
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt pyinstaller
+
+    - name: Run PyInstaller
+      run: pyinstaller .\main.py --name image-resize-for-twitch.exe --onefile --noconsole --collect-data tkinterdnd2
+
+    - name: Create a new release and upload the executable
+      uses: softprops/action-gh-release@v1
+      with:
+        files: 'dist/image-resize-for-twitch.exe'
+        prerelease: false
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
