@@ -6,6 +6,8 @@ Release から最新バージョンの image-resize-for-twitch.exe をダウン�
 
 exe ファイルを開き、 Open Fileを押して、リサイズするファイルを選択し、リサイズボタンを押すことでリサイズされます。リサイズされたファイルは、元のファイルと同じ場所に作られます。
 
+画像はウィンドウへのドラッグ＆ドロップでも選択できます。選択した画像はサムネイルで表示されます。
+
 AA(アンチエイリアス)の違いで、変換時のコントラストが変わります。エッジのスムーズさに影響があるので、お好みの方をお使いください。
 
 試験的にアニメーション GIF にも対応しています。バグで透過が正しく行われない場合もあります。
@@ -23,9 +25,12 @@ memo: python
 ```
 python -m venv .venv
 .\.venv\Scripts\activate
+pip install -r requirements.txt
 ```
 
 memo: build command
 ```
-pyinstaller .\main.py --name image-resize-for-twitch.exe --onefile --noconsole --collect-data tkinterdnd2
+pip install pyinstaller
+pyinstaller .\main.py --name image-resize-for-twitch.exe --onefile --noconsole --collect-data tkinterdnd2 --exclude-module numpy
 ```
+`--collect-data tkinterdnd2` はドラッグ＆ドロップに必要です。`--exclude-module numpy` は Pillow 経由で巻き込まれる numpy を除外するもので、無いと exe が 25MB ほどに膨らみます（除外すると約14MB）。

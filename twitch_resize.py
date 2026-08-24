@@ -10,7 +10,7 @@ def twitch_resize_func(input_file_path, resize_list=[112, 56, 28], aa_enable=Tru
         aa_enable (bool): アンチエイリアスを有効にするかどうか
         keep_aspect (bool): アスペクト比を維持するかどうか
     Returns:
-        bool: 処理が成功したかどうか
+        list | bool: 成功時は出力ファイルパスのリスト、失敗時は False
     """
     resizer = ImageResizer(input_file_path, resize_list, aa_enable, keep_aspect)
     return resizer.process()
@@ -23,6 +23,7 @@ class ImageResizer:
         self.resize_list = resize_list
         self.aa_enable = aa_enable
         self.keep_aspect = keep_aspect
+        self.output_paths = []
         self.validate_input()
 
     def validate_input(self):
@@ -73,6 +74,7 @@ class ImageResizer:
                 resized = self.resize_frame(img, size)
                 output_path = self.get_output_path(size)
                 resized.save(output_path, optimize=True)
+                self.output_paths.append(output_path)
 
     def resize_animated_gif(self):
         self.aa_enable = False
@@ -146,6 +148,7 @@ class ImageResizer:
                 
                 # GIFとして保存
                 frames[0].save(output_path, **save_kwargs)
+                self.output_paths.append(output_path)
 
     def process(self):
         """画像処理のメイン関数"""
@@ -156,7 +159,7 @@ class ImageResizer:
                     self.resize_animated_gif()
                 else:
                     self.resize_static_image()
-            return True
+            return self.output_paths
         except Exception as e:
             print(f"エラーが発生しました: {e}")
             return False

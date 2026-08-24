@@ -16,13 +16,13 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11' # お使いのPythonバージョンに合わせて変更してください
+        python-version: '3.13' # お使いのPythonバージョンに合わせて変更してください
 
     - name: Install dependencies
       run: pip install -r requirements.txt pyinstaller
 
     - name: Run PyInstaller
-      run: pyinstaller .\main.py --name image-resize-for-twitch.exe --onefile --noconsole --collect-data tkinterdnd2
+      run: pyinstaller .\main.py --name image-resize-for-twitch.exe --onefile --noconsole --collect-data tkinterdnd2 --exclude-module numpy
 
     - name: Create a new release and upload the executable
       uses: softprops/action-gh-release@v1

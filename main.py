@@ -1,9 +1,23 @@
+import os
+
 from tkinter import *
 from tkinter import filedialog
 from tkinter import ttk
 from tkinter import messagebox
 
+from PIL import Image, ImageTk
+
 import twitch_resize
+
+# ドラッグ＆ドロップ用（未インストール環境でも従来通り起動できるようにする）
+try:
+    from tkinterdnd2 import TkinterDnD, DND_FILES
+    DND_AVAILABLE = True
+except ImportError:
+    DND_AVAILABLE = False
+
+# サムネイル表示の最大サイズ
+PREVIEW_MAX_PX = 96
 
 def open_file_clicked():
     info_text.set('Open Fileを押して、ファイルを選択し、Resize ボタンでリサイズされます')
@@ -14,6 +28,27 @@ def open_file_clicked():
         print(file.name)
         file.close()
 
+def on_drop(event):
+    """ウィンドウに画像をドロップしたときの挙動（複数ドロップ時は先頭の1ファイルのみ）"""
+    paths = root.tk.splitlist(event.data)
+    if paths:
+        filepath.set(paths[0])
+        info_text.set('Resize ボタンでリサイズされます')
+
+def update_preview(*args):
+    """filepath の画像をサムネイル表示する（画像として開けない場合は No Preview）"""
+    global preview_image
+    try:
+        with Image.open(filepath.get()) as img:
+            thumb = img.copy()
+    except Exception:
+        preview_image = None  # 参照を保持しないと Tk 側で画像が消えるため global で持つ
+        preview_label.configure(image='', text='No\nPreview')
+        return
+    thumb.thumbnail((PREVIEW_MAX_PX, PREVIEW_MAX_PX))
+    preview_image = ImageTk.PhotoImage(thumb)
+    preview_label.configure(image=preview_image, text='')
+
 def resize_clicked(resize_list=[112, 56, 28], aa_enable=True, keep_aspect=False):
     """
     リサイズボタンを押したときの挙動
@@ -21,31 +56,38 @@ def resize_clicked(resize_list=[112, 56, 28], aa_enable=True, keep_aspect=False)
     72x72 とかも対応出来るようにする
     """
     info_text.set("変換中")
+    root.update_idletasks()  # 変換中は描画が止まるため、先に INFO を描画させる
     resize_filepath = filepath.get()
     if not resize_filepath:
         messagebox.showerror("Error", "ファイルパスが設定されていません。")
         info_text.set("ファイルパスが設定されていません。")
     else:
         try:
-            twitch_resize.twitch_resize_func(resize_filepath, resize_list, aa_enable, keep_aspect=keep_aspect)
+            output_paths = twitch_resize.twitch_resize_func(resize_filepath, resize_list, aa_enable, keep_aspect=keep_aspect)
         except ValueError as e:
             messagebox.showerror("Error", "ファイルが画像でない可能性があります。")
             info_text.set("ファイルが画像でない可能性があります。")
             return -1
-        info_text.set("リサイズが完了しました。")
+        if output_paths:
+            output_names = ', '.join(os.path.basename(p) for p in output_paths)
+            info_text.set(f"リサイズ完了: {output_names}（元画像と同じフォルダ）")
+        else:
+            messagebox.showerror("Error", "リサイズ中にエラーが発生しました。")
+            info_text.set("リサイズ中にエラーが発生しました。")
         # messagebox.showinfo("info", "リサイズが完了しました。")
 
 def help_cliked():
     info_text.set('Open Fileを押して、ファイルを選択し、Resize ボタンでリサイズされます')
-    messagebox.showinfo("Resize Help", f"Open Fileを押して、ファイルを選択し、Resize ボタンでリサイズされます。\nリサイズされたファイルは元ファイルと同じ場所に作成されます。\n Resize ボタンで 112x112, 56x56, 28x28\tResize_72 ボタンで 72x72, 36x36, 18x18 が生成されます。\n画像のぼやけが気になる場合は、No_AA を使ってください。\nアニメーションGifは強制的にアンチエイリアスが無効になります（透過処理の問題）")
+    messagebox.showinfo("Resize Help", f"Open Fileを押して、ファイルを選択し、Resize ボタンでリサイズされます。\n画像はウィンドウへのドラッグ&ドロップでも選択できます。\nリサイズされたファイルは元ファイルと同じ場所に作成されます。\n Resize ボタンで 112x112, 56x56, 28x28\tResize_72 ボタンで 72x72, 36x36, 18x18 が生成されます。\n画像のぼやけが気になる場合は、No_AA を使ってください。\nアニメーションGifは強制的にアンチエイリアスが無効になります（透過処理の問題）")
 
 if __name__ == "__main__":
-    root = Tk()
+    # D&D を使うためルートウィンドウは TkinterDnD.Tk にする
+    root = TkinterDnD.Tk() if DND_AVAILABLE else Tk()
     root.title('Twitch image resizer')
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
     root.rowconfigure(1, weight=1)
-    root.geometry("650x320")
+    root.geometry("650x430")
 
     file_path_frame = ttk.Frame(root, padding=[10,0,10,0])
     file_path_frame.columnconfigure(0, weight=1)
@@ -59,12 +101,20 @@ if __name__ == "__main__":
         command=open_file_clicked)
     b1.grid(row=0, column=0, sticky=(W))
 
-    # File Entry 
+    # File Entry
     filepath = StringVar()
     filepath_entry = ttk.Entry(
         file_path_frame,
         textvariable=filepath)
     filepath_entry.grid(row=0, column=1, sticky=(W, E))
+
+    # サムネイル表示（filepath が変わるたびに自動更新）
+    preview_label = ttk.Label(
+        file_path_frame, text='No\nPreview',
+        anchor=CENTER, relief='groove', padding=5)
+    preview_label.grid(row=0, column=2, padx=(10, 0), pady=5)
+    preview_image = None
+    filepath.trace_add('write', update_preview)
 
     # style
     style = ttk.Style()
@@ -307,5 +357,10 @@ if __name__ == "__main__":
         textvariable=info_text
     )
     info_text_label.grid(row=1, column=1)
-    
+
+    # ウィンドウ全体で画像ファイルのドロップを受け付ける
+    if DND_AVAILABLE:
+        root.drop_target_register(DND_FILES)
+        root.dnd_bind('<<Drop>>', on_drop)
+
     root.mainloop()
